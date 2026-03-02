@@ -15,7 +15,8 @@ Imports:
     quantreg,
     TwoSampleMR
 Remotes:
-    github::tye27/mr.divw
+    github::tye27/mr.divw,
+    github::qingyuanzhao/mr.raps
 URL: https://github.com/dingketang/RobustMR
 BugReports: https://github.com/dingketang/RobustMR/issues
 Suggests: 
