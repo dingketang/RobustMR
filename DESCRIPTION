@@ -16,7 +16,8 @@ Imports:
     TwoSampleMR
 Remotes:
     github::tye27/mr.divw,
-    github::qingyuanzhao/mr.raps
+    github::qingyuanzhao/mr.raps,
+    github::MRCIEU/TwoSampleMR
 URL: https://github.com/dingketang/RobustMR
 BugReports: https://github.com/dingketang/RobustMR/issues
 Suggests: 
