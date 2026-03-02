@@ -37,6 +37,7 @@ n = 10000  # sample size
 p = 200    # number of SNPs
 
 # IV–treatment effects in the treatment GWAS
+set.seed(1234)
 gamma = runif(p, min = 0.05, max = 0.1)
 
 gamma_fun = function(gamma) {
@@ -48,7 +49,7 @@ tau0 = 0
 mu   = 0
 alpha_star = rep(0, p)  # no pleiotropy
 
-data = data_gen(
+data = RobustMR::data_gen(
   seed = 1234,
   n = n,
   p = p,
@@ -61,13 +62,15 @@ data = data_gen(
   beta_0 = 0.5
 )
 
-mr_wald_bs(data$mat_all)
-# Point estimate ≈ 0.504
-# 95% CI ≈ (0.466, 0.543)
+set.seed(1234)
+RobustMR::mr_wald_bs(data$mat_all)
+# Point estimate ≈ 0.511
+# 95% CI ≈ (0.473, 0.549)
 
-mr_wald_qr_bs(data$mat_all)
-# Point estimate ≈ 0.497
-# 95% CI ≈ (0.451, 0.544)
+set.seed(1234)
+RobustMR::mr_wald_qr_bs(data$mat_all)
+# Point estimate ≈ 0.501
+# 95% CI ≈ (0.445, 0.557)
 ```
 
 ---
