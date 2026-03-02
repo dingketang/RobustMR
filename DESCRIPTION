@@ -1,0 +1,17 @@
+Package: RobustMR
+Title: Perform Mendelian Randomization Analysis using heterogeneous samples 
+Version: 0.0.0.9000
+Authors@R: 
+    person("Dingke", "Tang", , "dtang@uottawa.ca", role = c("aut", "cre"))
+Description: This is the code implementation for the paper "A robust framework for two-sample Mendelian randomization, Tang, D, He, X, Jiang, S, and Yang, S
+License: use_mit_license()
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    MASS,
+    mr.raps,
+    quantreg,
+    TwoSampleMR
+URL: https://github.com/dingketang/RobustMR
+BugReports: https://github.com/dingketang/RobustMR/issues
