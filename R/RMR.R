@@ -3,20 +3,19 @@
 #' @import TwoSampleMR
 #' @import mr.raps
 
-## ----------------------------------------------------------------------------
-## MR Wald-type estimator based on two weighted regressions
-##   - Regress outcome association (Gamma_ot) on gamma_tr (no intercept)
-##   - Regress gamma_ot on gamma_tr (no intercept)
-##   - Point estimate is ratio of slopes
-##   - SE uses (approx) delta-style: se(b_out) / b_exposure (your current form)
-## Input:
-##   data_mat must contain: Gamma_ot, gamma_ot, gamma_tr, se_Gamma_ot, se_gamma_ot
-## Output:
-##   pe: causal estimate; lb/ub: normal CI; bhat: fitted slope for Gamma regression
-
+#' @name mr_wald
+#' @title MR Wald-type estimator via two weighted no-intercept regressions
+#' @description
+#' Computes a Wald-type Mendelian randomization (MR) estimate using two
+#' weighted linear regressions through the origin. The point estimate is the
+#' ratio of the two fitted slopes.
+#'
+#' @param data_mat A data.frame containing columns Gamma_ot, gamma_ot, gamma_tr,
+#'   se_Gamma_ot, and se_gamma_ot.
+#'
+#' @return A list with elements pe, lb, and ub.
 #' @export
 mr_wald <- function(data_mat){
-
   ## Fit 2: weighted regression for outcome association on instrument strength
   ## weights = 1 / Var(Gamma_ot)
   fit2_weights <- 1 / data_mat$se_Gamma_ot^2
@@ -45,13 +44,17 @@ mr_wald <- function(data_mat){
 }
 
 
-## ----------------------------------------------------------------------------
-## Bootstrap CI for mr_wald (pairs bootstrap over SNPs)
-## Input:
-##   repit: number of bootstrap replications
-## Output:
-##   pe: original estimate; lb/ub: percentile bootstrap CI
-
+#' @name mr_wald_bs
+#' @title Bootstrap CI for MR Wald estimator
+#' @description
+#' Computes a bootstrap-based normal-approximation confidence interval for
+#' \code{\link{mr_wald}} by resampling SNP rows of \code{data_mat} with replacement.
+#'
+#' @param data_mat A data.frame containing the columns required by \code{\link{mr_wald}}.
+#' @param repit Integer. Number of bootstrap replicates. Default is 500.
+#'
+#' @return A list with elements \code{pe}, \code{lb}, and \code{ub}.
+#'
 #' @export
 mr_wald_bs <- function(data_mat, repit = 500){
 
@@ -71,14 +74,21 @@ mr_wald_bs <- function(data_mat, repit = 500){
 }
 
 
-## ----------------------------------------------------------------------------
-## Quantile-regression analogue (median regression) for Wald-type ratio
-## Note: rq() weights are treated as case weights; you used 1/se (not 1/se^2).
-## Input:
-##   data_mat must contain: Gamma_ot, gamma_ot, gamma_tr, se_Gamma_ot, se_gamma_ot
-## Output:
-##   pe: ratio of median-regression slopes
-
+#' @name mr_wald_qr
+#' @title Quantile-regression analogue of MR Wald estimator (median regression)
+#' @description
+#' Computes a Wald-type Mendelian randomization (MR) estimate using median
+#' regression (quantile regression with \eqn{\tau = 0.5}) through the origin for
+#' both outcome and exposure associations, and takes the ratio of fitted slopes.
+#'
+#' @param data_mat A data.frame containing columns \code{Gamma_ot}, \code{gamma_ot},
+#'   \code{gamma_tr}, \code{se_Gamma_ot}, and \code{se_gamma_ot}.
+#'
+#' @return A list with element:
+#' \describe{
+#'   \item{pe}{Point estimate of the causal effect (ratio of median-regression slopes).}
+#' }
+#'
 #' @export
 mr_wald_qr <- function(data_mat){
 
@@ -99,9 +109,17 @@ mr_wald_qr <- function(data_mat){
 }
 
 
-## ----------------------------------------------------------------------------
-## Bootstrap CI for mr_wald_qr
-
+#' @name mr_wald_qr_bs
+#' @title Bootstrap CI for quantile-regression Wald estimator
+#' @description
+#' Computes a bootstrap-based normal-approximation confidence interval for
+#' \code{\link{mr_wald_qr}} by resampling SNP rows of \code{data_mat} with replacement.
+#'
+#' @param data_mat A data.frame containing the columns required by \code{\link{mr_wald_qr}}.
+#' @param repit Integer. Number of bootstrap replicates. Default is 500.
+#'
+#' @return A list with elements \code{pe}, \code{lb}, and \code{ub}.
+#'
 #' @export
 mr_wald_qr_bs <- function(data_mat, repit = 500){
 
@@ -120,24 +138,34 @@ mr_wald_qr_bs <- function(data_mat, repit = 500){
 }
 
 
-## ----------------------------------------------------------------------------
-## Data generator (two-sample style): generate Z,U,D,Y in an "outcome sample"
-## and independently generate Z_new,U,D_new in a "treatment sample", then compute
-## SNP-wise marginal associations and SEs via simple linear regressions.
-##
-## IMPORTANT potential issues in your current code (not changing, just flagging):
-##   1) D = Z %*% g_gamma(gamma) uses g_gamma(), but you pass gamma/gamma_fun.
-##      If g_gamma() is not defined elsewhere, this will error.
-##   2) Y includes Z %*% alpha, but alpha is not defined in the function inputs.
-##      You have alpha_star input but never used; likely you meant alpha_star.
-##   3) D_new = Z_new %*% gamma uses gamma as a vector (consistent), but D uses g_gamma().
-##   4) You create mat_h and mat_all with names beta.outcome/beta.exposure etc,
-##      but your mr_wald() expects Gamma_ot/gamma_ot/gamma_tr column names.
-##
-## Output:
-##   mat_h: (Gamma_outcome, gamma_tr, se_Gamma_outcome, se_gamma_tr)
-##   mat_all: (gamma_ot, gamma_tr, se_gamma_ot, se_gamma_tr)
-
+#' @name data_gen
+#' @title Generate two-sample Mendelian randomization summary statistics
+#' @description
+#' Generates simulated genotype data and traits in two independent samples
+#' (an "outcome sample" and a "treatment sample"), then computes SNP-wise marginal
+#' associations and standard errors via simple linear regressions. Returns two
+#' data.frames: one in a TwoSampleMR-style format and one containing additional
+#' summary statistics used by methods in this package.
+#'
+#' @param seed Integer or \code{NULL}. Random seed. If \code{NULL}, a seed is generated internally.
+#' @param n Integer. Sample size (used for both the outcome and treatment samples). Default is \code{10000}.
+#' @param p Integer. Number of SNPs. Default is \code{200}.
+#' @param mu Numeric. Mean used when generating the direct-effect vector \code{alpha}. Default is \code{0}.
+#' @param alpha_star Numeric vector or \code{NULL}. Currently included as an input but not used by the function.
+#' @param tau0 Numeric. Standard deviation used when generating \code{alpha}. Default is \code{0}.
+#' @param gamma Numeric vector of length \code{p}. SNP-exposure effects in the treatment sample.
+#' @param gamma_fun Function applied to \code{gamma} when generating \code{D} in the outcome sample.
+#' @param MAF Numeric in (0, 1). Minor allele frequency used for genotype simulation. Default is \code{0.3}.
+#' @param beta_0 Numeric. True causal effect used in the outcome model.
+#'
+#' @return A list with elements:
+#' \describe{
+#'   \item{mat_all}{A data.frame with columns \code{Gamma_ot}, \code{gamma_ot}, \code{gamma_tr},
+#'     \code{se_Gamma_ot}, \code{se_gamma_tr}, and \code{se_gamma_ot}.}
+#'   \item{mat_h}{A data.frame with columns \code{beta.outcome}, \code{beta.exposure},
+#'     \code{se.outcome}, and \code{se.exposure}.}
+#' }
+#'
 #' @export
 data_gen <- function(seed       = NULL,
                      n          = 10000,

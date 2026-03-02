@@ -10,8 +10,12 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
     MASS,
+    mr.divw,
     mr.raps,
     quantreg,
     TwoSampleMR
 URL: https://github.com/dingketang/RobustMR
 BugReports: https://github.com/dingketang/RobustMR/issues
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

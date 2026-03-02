@@ -1,18 +1,25 @@
-
-## ----------------------------------------------------------------------------
-## One Monte Carlo replication:
-## Scenario 1, Case 3
-##   - Large sample (n = 10000), many instruments (p = 200)
-##   - Nonlinear exposure–instrument relationship via gamma_fun
-##   - No pleiotropy (alpha_star = 0)
-##   - True causal effect beta_0 = 0.5
-##
-## Input:
-##   seed : seed index for Monte Carlo replication
-##
-## Output:
-##   A list of estimates + CIs from multiple MR methods
-
+#' @name scenario1case3
+#' @title One Monte Carlo replication for Scenario 1 Case 3
+#' @description
+#' Runs one Monte Carlo replication under "Scenario 1, Case 3" and returns
+#' point estimates and 95\% confidence intervals from multiple Mendelian
+#' randomization (MR) methods. Internally, this function calls \code{\link{data_gen}},
+#' then computes estimators including \code{\link{mr_wald_bs}} and \code{\link{mr_wald_qr_bs}},
+#' as well as several competing MR methods.
+#'
+#' @param seed Integer. Seed index for this Monte Carlo replication.
+#'
+#' @return A named list. Each element is a numeric vector of length 3 with entries
+#' \code{c(estimate, lb, ub)}:
+#' \describe{
+#'   \item{mr_wald}{Wald-type estimator with bootstrap-based CI (via \code{\link{mr_wald_bs}}).}
+#'   \item{mr_wald_qr}{Quantile-regression Wald estimator with bootstrap-based CI (via \code{\link{mr_wald_qr_bs}}).}
+#'   \item{mr_w_median}{Weighted median estimator with normal-approximation CI.}
+#'   \item{mr_egger}{MR-Egger regression estimator with normal-approximation CI.}
+#'   \item{mr_rap}{MR-RAPS estimator with normal-approximation CI.}
+#'   \item{mr_divw}{DIVW estimator with normal-approximation CI.}
+#' }
+#'
 #' @export
 scenario1case3 <- function(seed){
 
@@ -134,16 +141,28 @@ scenario1case3 <- function(seed){
 }
 
 
-## ----------------------------------------------------------------------------
-## Post-processing Monte Carlo results
-##
-## Input:
-##   fitlist : list of outputs from scenario1case3()
-##   beta_0  : true causal effect
-##
-## Output:
-##   Matrix with Bias (%), RMSE (%), CI length (%), Coverage (%)
-
+#' @name process_fit_result
+#' @title Summarize Monte Carlo performance metrics
+#' @description
+#' Post-processes a list of Monte Carlo outputs (as returned by
+#' \code{\link{scenario1case3}}) to compute performance metrics for each estimator,
+#' including relative bias, relative RMSE, relative CI length, and empirical
+#' coverage probability.
+#'
+#' @param fitlist A list of Monte Carlo replications. Each element should be the
+#'   output of \code{\link{scenario1case3}}, i.e., a named list of length-3 numeric
+#'   vectors \code{c(estimate, lb, ub)}.
+#' @param beta_0 Numeric. True causal effect used to compute relative metrics.
+#'
+#' @return A numeric matrix with 4 rows and one column per estimator. Rows are:
+#' \describe{
+#'   \item{Bias}{Relative bias in percent.}
+#'   \item{RMSE}{Relative RMSE in percent.}
+#'   \item{CI length}{Relative mean CI length in percent.}
+#'   \item{CI}{Empirical coverage in percent.}
+#' }
+#' Column names correspond to estimator names.
+#'
 #' @export
 process_fit_result <- function(fitlist, beta_0){
 
