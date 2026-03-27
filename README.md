@@ -7,7 +7,7 @@ This repository provides the R code and package accompanying the paper
 
 ## Installation
 
-You can install the development version of **RobustMR** directly from GitHub:
+You can install the **RobustMR** package directly from GitHub:
 
 ```r
 devtools::install_github("dingketang/RobustMR")
