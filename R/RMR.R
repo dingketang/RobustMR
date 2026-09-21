@@ -75,11 +75,10 @@ mr_wald_bs <- function(data_mat, repit = 500){
 
 
 #' @name mr_wald_R
-#' @title Quantile-regression analogue of MR Wald estimator (median regression)
+#' @title Robust-score analogue of MR Wald estimator (median score)
 #' @description
 #' Computes a Wald-type Mendelian randomization (MR) estimate using median
-#' regression (quantile regression with \eqn{\tau = 0.5}) through the origin for
-#' both outcome and exposure associations, and takes the ratio of fitted slopes.
+#' score (with \eqn{\tau = 0.5}) 
 #'
 #' @param data_mat A data.frame containing columns \code{Gamma_ot}, \code{gamma_ot},
 #'   \code{gamma_tr}, \code{se_Gamma_ot}, and \code{se_gamma_ot}.
