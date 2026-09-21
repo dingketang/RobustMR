@@ -60,7 +60,7 @@ scenario1case3 <- function(seed){
   ## Wald-type estimator with bootstrap CI
   fit1 <- mr_wald_bs(data$mat_all)
 
-  ## Quantile-regression-based Wald estimator with bootstrap CI
+  ## median-score-based Wald estimator with bootstrap CI
   fit2 <- mr_wald_qr_R(data$mat_all)
 
   ## Outcome–exposure summary data for standard MR methods
