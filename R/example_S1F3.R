@@ -13,7 +13,7 @@
 #' \code{c(estimate, lb, ub)}:
 #' \describe{
 #'   \item{mr_wald}{Wald-type estimator with bootstrap-based CI (via \code{\link{mr_wald_bs}}).}
-#'   \item{mr_wald_qr}{Quantile-regression Wald estimator with bootstrap-based CI (via \code{\link{mr_wald_qr_bs}}).}
+#'   \item{mr_wald_R}{Robust score Wald estimator with bootstrap-based CI.}
 #'   \item{mr_w_median}{Weighted median estimator with normal-approximation CI.}
 #'   \item{mr_egger}{MR-Egger regression estimator with normal-approximation CI.}
 #'   \item{mr_rap}{MR-RAPS estimator with normal-approximation CI.}
@@ -61,7 +61,7 @@ scenario1case3 <- function(seed){
   fit1 <- mr_wald_bs(data$mat_all)
 
   ## Quantile-regression-based Wald estimator with bootstrap CI
-  fit2 <- mr_wald_qr_bs(data$mat_all)
+  fit2 <- mr_wald_qr_R(data$mat_all)
 
   ## Outcome–exposure summary data for standard MR methods
   mat_h <- data$mat_h
