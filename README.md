@@ -96,11 +96,11 @@ result <- mclapply(1:1000, senario1case3, mc.cores = 5)
 process_fit_result(fitlist = result, beta_0 = 0.5)
 
 ## ----------------------------------------------------------------------------
-#          mr_wald mr_wald_qr mr_w_median mr_egger mr_rap mr_divw
-# Bias          0.0        0.0        75.9    -59.2  136.7   137.3
-# RMSE          1.8        3.3        76.4     62.4  137.0   137.6
-# CI length     7.0       13.8        41.1     67.1   35.0    33.7
-# CI           94.4       95.2         0.0     11.2    0.0     0.0
+#          mr_wald mr_wald_R mr_w_median mr_egger mr_rap mr_divw
+# Bias          0.0        -0.1        75.9    -59.2  136.7   137.3
+# RMSE          1.8        2.3        76.4     62.4  137.0   137.6
+# CI length     7.0       8.9       41.1     67.1   35.0    33.7
+# CI           94.4       94.2         0.0     11.2    0.0     0.0
 ```
 
 ---
