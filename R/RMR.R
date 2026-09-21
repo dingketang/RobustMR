@@ -18,7 +18,7 @@
 mr_wald <- function(data_mat){
   ## Fit 2: weighted regression for outcome association on instrument strength
   ## weights = 1 / Var(Gamma_ot)
-  fit2_weights <- 1 / data_mat$se_Gamma_ot^2
+  fit2_weights <- 1 / data_mat$se_gamma_ot^2
   fit2 <- summary(lm(data_mat$Gamma_ot ~ data_mat$gamma_tr + 0,
                      weights = fit2_weights))
 
@@ -74,7 +74,7 @@ mr_wald_bs <- function(data_mat, repit = 500){
 }
 
 
-#' @name mr_wald_qr
+#' @name mr_wald_R
 #' @title Quantile-regression analogue of MR Wald estimator (median regression)
 #' @description
 #' Computes a Wald-type Mendelian randomization (MR) estimate using median
@@ -83,6 +83,8 @@ mr_wald_bs <- function(data_mat, repit = 500){
 #'
 #' @param data_mat A data.frame containing columns \code{Gamma_ot}, \code{gamma_ot},
 #'   \code{gamma_tr}, \code{se_Gamma_ot}, and \code{se_gamma_ot}.
+#' @param min_num Numeric. Smallest Number of Optimization. Default is \code{-5}.
+#' @param max_num Numeric. Largest number of Optimization. Default is \code{5}.
 #'
 #' @return A list with element:
 #' \describe{
@@ -90,51 +92,21 @@ mr_wald_bs <- function(data_mat, repit = 500){
 #' }
 #'
 #' @export
-mr_wald_qr <- function(data_mat){
+mr_wald_R <- function(data_mat,min_num = -5,max_num = 5){
 
-  ## Median regression for outcome association
-  fit2_weights <- 1 / data_mat$se_Gamma_ot
-  fit2 <- rq(data_mat$Gamma_ot ~ data_mat$gamma_tr + 0,
-             weights = fit2_weights, tau = 0.5)
-
-  ## Median regression for gamma_ot on gamma_tr
-  fit1_weights <- 1 / data_mat$se_gamma_ot
-  fit1 <- rq(data_mat$gamma_ot ~ data_mat$gamma_tr + 0,
-             weights = fit1_weights, tau = 0.5)
-
-  ## Ratio of slopes
-  pe <- coef(fit2, tau = 0.5)[1] / coef(fit1, tau = 0.5)[1]
-
-  return(list(pe = pe))
-}
-
-
-#' @name mr_wald_qr_bs
-#' @title Bootstrap CI for quantile-regression Wald estimator
-#' @description
-#' Computes a bootstrap-based normal-approximation confidence interval for
-#' \code{\link{mr_wald_qr}} by resampling SNP rows of \code{data_mat} with replacement.
-#'
-#' @param data_mat A data.frame containing the columns required by \code{\link{mr_wald_qr}}.
-#' @param repit Integer. Number of bootstrap replicates. Default is 500.
-#'
-#' @return A list with elements \code{pe}, \code{lb}, and \code{ub}.
-#'
-#' @export
-mr_wald_qr_bs <- function(data_mat, repit = 500){
-
-  result <- rep(0, repit)
-  p <- nrow(data_mat)
-
-  for (i in 1:repit) {
-    index <- sample(1:p, replace = TRUE)
-    result[i] <- mr_wald_qr(data_mat[index, ])$pe
+  g_beta <- function(beta){
+    (sum(1/data_mat$se_gamma_tr*data_mat$gamma_tr*(0.5-(data_mat$Gamma_ot > beta*data_mat$gamma_ot))))
   }
-
-  pe <- mr_wald_qr(data_mat)$pe
-  sdCI   = sd(result)
-  return(list(pe= pe,lb =pe -sdCI*1.96 ,ub = pe + sdCI*1.96 )
-  )
+  
+  beta = seq(min_num,max_num,0.001)
+  M_square = unlist(lapply(beta,g_beta))^2
+  index = which.min(M_square)
+  pe = beta[index]
+  
+  CI_can  = unlist(lapply(beta,g_beta))/sqrt(0.25*(1+sum((data_mat$gamma_tr/data_mat$se_gamma_tr)^2)))
+  CI_up   = beta[min(which(CI_can>1.96))]
+  CI_low  = beta[max(which(CI_can< -1.96))]
+  return(c(pe = pe,lb = CI_low,ub = CI_up))
 }
 
 
@@ -171,7 +143,7 @@ data_gen <- function(seed       = NULL,
                      n          = 10000,
                      p          = 200,
                      mu         = 0,
-                     alpha_star = NULL,
+                     alpha_star = 0,
                      tau0 = 0,
                      gamma,
                      gamma_fun,
@@ -195,7 +167,7 @@ data_gen <- function(seed       = NULL,
 
   ## Outcome in outcome sample
   ##
-  alpha = rnorm(p,mean  = mu , sd = tau0)
+  alpha = rnorm(p,mean  = mu , sd = tau0)+alpha_star
 
   Y <- beta_0 * D + U + rnorm(n) + Z %*% alpha
 
