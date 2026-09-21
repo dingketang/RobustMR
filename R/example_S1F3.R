@@ -109,10 +109,7 @@ scenario1case3 <- function(seed){
                    lb = fit1$lb,
                    ub = fit1$ub)
 
-  mr_wald_qr  <- c(fit2$pe,
-                   lb = fit2$lb,
-                   ub = fit2$ub)
-
+  mr_wald_R  <- fit2
   mr_w_median <- c(fit3$b,
                    lb = fit3$b - fit3$se * 1.96,
                    ub = fit3$b + fit3$se * 1.96)
@@ -132,7 +129,7 @@ scenario1case3 <- function(seed){
   ## Return all estimators in a named list
   return(list(
     mr_wald     = mr_wald,
-    mr_wald_qr  = mr_wald_qr,
+    mr_wald_R  = mr_wald_qr,
     mr_w_median = mr_w_median,
     mr_egger    = mr_egger,
     mr_rap      = mr_rap,
