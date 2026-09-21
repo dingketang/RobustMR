@@ -102,7 +102,7 @@ mr_wald_R <- function(data_mat,min_num = -5,max_num = 5){
   index = which.min(M_square)
   pe = beta[index]
   
-  CI_can  = unlist(lapply(beta,g_beta))/sqrt(0.25*(1+sum((data_mat$gamma_tr/data_mat$se_gamma_tr)^2)))
+  CI_can  = unlist(lapply(beta,g_beta))/sqrt(0.25*(sum((data_mat$gamma_tr/data_mat$se_gamma_tr)^2)))
   CI_up   = beta[min(which(CI_can>1.96))]
   CI_low  = beta[max(which(CI_can< -1.96))]
   return(c(pe = pe,lb = CI_low,ub = CI_up))
