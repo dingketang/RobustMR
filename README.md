@@ -1,7 +1,7 @@
 # RobustMR
 
 This repository provides the R code and package accompanying the paper  
-**“A Robust Framework for Two-Sample Mendelian Randomization under Population Heterogeneity.”**
+**“Summary-data Mendelian randomization under population heterogeneity”**
 
 ---
 
