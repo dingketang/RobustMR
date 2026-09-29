@@ -11,6 +11,8 @@ You can install the **RobustMR** package directly from GitHub:
 
 ```r
 devtools::install_github("dingketang/RobustMR")
+library(parallel)
+library(RobustMR)
 ```
 
 ---
@@ -88,7 +90,7 @@ By modifying this function, the other scenarios reported in the manuscript can b
 ## ----------------------------------------------------------------------------
 ## Run Monte Carlo experiment (1000 replications, 5 cores)
 
-result <- mclapply(1:1000, senario1case3, mc.cores = 5)
+result <- mclapply(1:1000, scenario1case3, mc.cores = 5)
 
 # Runtime is approximately 10 minutes on a MacBook Pro (2021)
 
