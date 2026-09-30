@@ -18,3 +18,12 @@ A list with elements \code{pe}, \code{lb}, and \code{ub}.
 Computes a bootstrap-based normal-approximation confidence interval for
 \code{\link{mr_wald}} by resampling SNP rows of \code{data_mat} with replacement.
 }
+\examples{
+x <- seq(0.08, 0.24, length.out = 24)
+dat <- data.frame(gamma_tr = x, gamma_ot = 1.3 * x,
+  Gamma_ot = 0.5 * 1.3 * x + 0.008 * sin(seq_along(x)),
+  se_gamma_ot = 0.03, se_gamma_tr = 0.02, se_Gamma_ot = 0.04)
+set.seed(2026)
+mr_wald_bs(dat, repit = 30)
+
+}

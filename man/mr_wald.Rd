@@ -11,10 +11,25 @@ mr_wald(data_mat)
 se_Gamma_ot, and se_gamma_ot.}
 }
 \value{
-A list with elements pe, lb, and ub.
+A list with elements \code{pe}, \code{lb}, \code{ub}, and
+\code{bhat} (the outcome-regression slope).
 }
 \description{
 Computes a Wald-type Mendelian randomization (MR) estimate using two
 weighted linear regressions through the origin. The point estimate is the
 ratio of the two fitted slopes.
+}
+\details{
+This preserves the source slope-based interval, which ignores
+uncertainty in the denominator slope and covariance between slopes. A
+zero or negative denominator can produce non-finite or reversed bounds.
+Use \code{\link{mr_wald_bs}} for the separately implemented SNP-pairs
+bootstrap interval.
+}
+\examples{
+x <- seq(0.08, 0.24, length.out = 24)
+dat <- data.frame(gamma_tr = x, gamma_ot = 1.3 * x,
+  Gamma_ot = 0.5 * 1.3 * x + 0.008 * sin(seq_along(x)),
+  se_gamma_ot = 0.03, se_gamma_tr = 0.02, se_Gamma_ot = 0.04)
+mr_wald(dat)
 }

@@ -9,7 +9,7 @@ data_gen(
   n = 10000,
   p = 200,
   mu = 0,
-  alpha_star = NULL,
+  alpha_star = 0,
   tau0 = 0,
   gamma,
   gamma_fun,
@@ -26,7 +26,8 @@ data_gen(
 
 \item{mu}{Numeric. Mean used when generating the direct-effect vector \code{alpha}. Default is \code{0}.}
 
-\item{alpha_star}{Numeric vector or \code{NULL}. Currently included as an input but not used by the function.}
+\item{alpha_star}{Numeric scalar or vector of length \code{p}. Added to the
+randomly generated direct effects. Default is 0.}
 
 \item{tau0}{Numeric. Standard deviation used when generating \code{alpha}. Default is \code{0}.}
 
@@ -53,4 +54,10 @@ Generates simulated genotype data and traits in two independent samples
 associations and standard errors via simple linear regressions. Returns two
 data.frames: one in a TwoSampleMR-style format and one containing additional
 summary statistics used by methods in this package.
+}
+\examples{
+sim <- data_gen(seed = 1, n = 200, p = 4,
+  gamma = rep(0.1, 4), gamma_fun = function(x) 1.2 * x, beta_0 = 0.5)
+head(sim$mat_all)
+
 }

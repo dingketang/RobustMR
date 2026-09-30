@@ -1,7 +1,3 @@
-#' @import quantreg
-#' @import MASS
-#' @import TwoSampleMR
-#' @import mr.raps
 
 #' @name mr_wald
 #' @title MR Wald-type estimator via two weighted no-intercept regressions
@@ -13,25 +9,39 @@
 #' @param data_mat A data.frame containing columns Gamma_ot, gamma_ot, gamma_tr,
 #'   se_Gamma_ot, and se_gamma_ot.
 #'
-#' @return A list with elements pe, lb, and ub.
+#' @details This preserves the source slope-based interval, which ignores
+#' uncertainty in the denominator slope and covariance between slopes. A
+#' zero or negative denominator can produce non-finite or reversed bounds.
+#' Use \code{\link{mr_wald_bs}} for the separately implemented SNP-pairs
+#' bootstrap interval.
+#'
+#' @return A list with elements \code{pe}, \code{lb}, \code{ub}, and
+#'   \code{bhat} (the outcome-regression slope).
+#'
+#' @examples
+#' x <- seq(0.08, 0.24, length.out = 24)
+#' dat <- data.frame(gamma_tr = x, gamma_ot = 1.3 * x,
+#'   Gamma_ot = 0.5 * 1.3 * x + 0.008 * sin(seq_along(x)),
+#'   se_gamma_ot = 0.03, se_gamma_tr = 0.02, se_Gamma_ot = 0.04)
+#' mr_wald(dat)
 #' @export
 mr_wald <- function(data_mat){
   ## Fit 2: weighted regression for outcome association on instrument strength
-  ## weights = 1 / Var(Gamma_ot)
+  ## Both regressions use inverse target-exposure variance weights.
   fit2_weights <- 1 / data_mat$se_gamma_ot^2
-  fit2 <- summary(lm(data_mat$Gamma_ot ~ data_mat$gamma_tr + 0,
+  fit2 <- summary(stats::lm(data_mat$Gamma_ot ~ data_mat$gamma_tr + 0,
                      weights = fit2_weights))
 
   ## Fit 1: weighted regression for (other) exposure association on instrument strength
   ## weights = 1 / Var(gamma_ot)
   fit1_weights <- 1 / data_mat$se_gamma_ot^2
-  fit1 <- summary(lm(data_mat$gamma_ot ~ data_mat$gamma_tr + 0,
+  fit1 <- summary(stats::lm(data_mat$gamma_ot ~ data_mat$gamma_tr + 0,
                      weights = fit1_weights))
 
   ## Ratio-of-slopes Wald estimate
   pe <- fit2$coefficients[1] / fit1$coefficients[1]
 
-  ## Your current SE: uses SE of fit2 slope divided by fit1 slope
+  ## Source slope-based SE: outcome slope SE divided by exposure slope
   ## (Note: this ignores uncertainty in fit1 slope.)
   se <- fit2$coefficients[2] / fit1$coefficients[1]
 
@@ -55,6 +65,14 @@ mr_wald <- function(data_mat){
 #'
 #' @return A list with elements \code{pe}, \code{lb}, and \code{ub}.
 #'
+#' @examples
+#' x <- seq(0.08, 0.24, length.out = 24)
+#' dat <- data.frame(gamma_tr = x, gamma_ot = 1.3 * x,
+#'   Gamma_ot = 0.5 * 1.3 * x + 0.008 * sin(seq_along(x)),
+#'   se_gamma_ot = 0.03, se_gamma_tr = 0.02, se_Gamma_ot = 0.04)
+#' set.seed(2026)
+#' mr_wald_bs(dat, repit = 30)
+#'
 #' @export
 mr_wald_bs <- function(data_mat, repit = 500){
 
@@ -68,27 +86,43 @@ mr_wald_bs <- function(data_mat, repit = 500){
   }
 
   pe <- mr_wald(data_mat)$pe
-  sdCI   = sd(result)
+  sdCI   = stats::sd(result)
   return(list(pe= pe,lb =pe -sdCI*1.96 ,ub = pe + sdCI*1.96 ))
 
 }
 
 
 #' @name mr_wald_R
-#' @title Robust-score analogue of MR Wald estimator (median score)
+#' @title Median-score MR Wald estimator on a fixed grid
 #' @description
-#' Computes a Wald-type Mendelian randomization (MR) estimate using median
-#' score (with \eqn{\tau = 0.5}) 
+#' Minimizes the squared median score over a grid with spacing 0.001 and
+#' returns the source implementation's threshold-crossing interval endpoints.
 #'
-#' @param data_mat A data.frame containing columns \code{Gamma_ot}, \code{gamma_ot},
-#'   \code{gamma_tr}, \code{se_Gamma_ot}, and \code{se_gamma_ot}.
-#' @param min_num Numeric. Smallest Number of Optimization. Default is \code{-5}.
-#' @param max_num Numeric. Largest number of Optimization. Default is \code{5}.
+#' @param data_mat A data.frame containing \code{Gamma_ot}, \code{gamma_ot},
+#'   \code{gamma_tr}, and \code{se_gamma_tr}. Rows correspond to harmonized SNPs;
+#'   \code{gamma_tr} is the external exposure association, \code{gamma_ot} is
+#'   the target exposure association, and \code{Gamma_ot} is the target outcome
+#'   association.
+#' @param min_num Numeric. Lower endpoint of the search grid. Default is -5.
+#' @param max_num Numeric. Upper endpoint of the search grid. Default is 5.
 #'
-#' @return A list with element:
-#' \describe{
-#'   \item{pe}{Point estimate of the causal effect (ratio of median-regression slopes).}
-#' }
+#' @details The numerical algorithm is retained from the supplied source.
+#' The returned bounds are not a general implementation of the complete
+#' score-inversion confidence set: disconnected accepted sets cannot be
+#' represented, and an endpoint may be \code{NA} if its threshold is not
+#' crossed within the grid. There is no dedicated fallback for zero score
+#' variance. These limitations should be resolved before using this function
+#' as a general implementation of the paper's confidence-set procedure.
+#'
+#' @return A named numeric vector with elements \code{pe} (a grid minimizer of
+#'   the squared score), \code{lb}, and \code{ub}.
+#'
+#' @examples
+#' x <- seq(0.08, 0.24, length.out = 24)
+#' dat <- data.frame(gamma_tr = x, gamma_ot = 1.3 * x,
+#'   Gamma_ot = 0.5 * 1.3 * x + 0.008 * sin(seq_along(x)),
+#'   se_gamma_ot = 0.03, se_gamma_tr = 0.02, se_Gamma_ot = 0.04)
+#' mr_wald_R(dat, min_num = 0.3, max_num = 0.7)
 #'
 #' @export
 mr_wald_R <- function(data_mat,min_num = -5,max_num = 5){
@@ -122,7 +156,8 @@ mr_wald_R <- function(data_mat,min_num = -5,max_num = 5){
 #' @param n Integer. Sample size (used for both the outcome and treatment samples). Default is \code{10000}.
 #' @param p Integer. Number of SNPs. Default is \code{200}.
 #' @param mu Numeric. Mean used when generating the direct-effect vector \code{alpha}. Default is \code{0}.
-#' @param alpha_star Numeric vector or \code{NULL}. Currently included as an input but not used by the function.
+#' @param alpha_star Numeric scalar or vector of length \code{p}. Added to the
+#'   randomly generated direct effects. Default is 0.
 #' @param tau0 Numeric. Standard deviation used when generating \code{alpha}. Default is \code{0}.
 #' @param gamma Numeric vector of length \code{p}. SNP-exposure effects in the treatment sample.
 #' @param gamma_fun Function applied to \code{gamma} when generating \code{D} in the outcome sample.
@@ -137,6 +172,11 @@ mr_wald_R <- function(data_mat,min_num = -5,max_num = 5){
 #'     \code{se.outcome}, and \code{se.exposure}.}
 #' }
 #'
+#' @examples
+#' sim <- data_gen(seed = 1, n = 200, p = 4,
+#'   gamma = rep(0.1, 4), gamma_fun = function(x) 1.2 * x, beta_0 = 0.5)
+#' head(sim$mat_all)
+#'
 #' @export
 data_gen <- function(seed       = NULL,
                      n          = 10000,
@@ -149,35 +189,35 @@ data_gen <- function(seed       = NULL,
                      MAF        = 0.3,
                      beta_0){
 
-  ## Seed handling (deterministic but different across runs)
+  ## A supplied seed index is multiplied by 2025, as in the source.
   if (is.null(seed))
-    seed <- floor(runif(1) * 10000)
+    seed <- floor(stats::runif(1) * 10000)
   set.seed(seed * 2025)
 
   ## Outcome sample genotype matrix: n x p, genotype in {0,1,2}
-  Z <- matrix(rbinom(n * p, 2, MAF), ncol = p)
+  Z <- matrix(stats::rbinom(n * p, 2, MAF), ncol = p)
 
   ## Unobserved confounder
-  U <- rnorm(n)
+  U <- stats::rnorm(n)
 
   ## Exposure in outcome sample
   ## NOTE: gamma_fun(gamma) must exist; otherwise replace with gamma
-  D <- Z %*% gamma_fun(gamma) + U + rnorm(n)
+  D <- Z %*% gamma_fun(gamma) + U + stats::rnorm(n)
 
   ## Outcome in outcome sample
   ##
-  alpha = rnorm(p,mean  = mu , sd = tau0)+alpha_star
+  alpha = stats::rnorm(p,mean  = mu , sd = tau0)+alpha_star
 
-  Y <- beta_0 * D + U + rnorm(n) + Z %*% alpha
+  Y <- beta_0 * D + U + stats::rnorm(n) + Z %*% alpha
 
   ## Treatment sample genotypes and exposure
-  Z_new <- matrix(rbinom(n * p, 2, MAF), ncol = p)
-  U <- rnorm(n)
-  D_new <- Z_new %*% gamma + U + rnorm(n)
+  Z_new <- matrix(stats::rbinom(n * p, 2, MAF), ncol = p)
+  U <- stats::rnorm(n)
+  D_new <- Z_new %*% gamma + U + stats::rnorm(n)
 
   ## Helper: SNP -> (estimate, SE) for association with D (outcome sample)
   get_gamma_ot <- function(V){
-    summary(lm(D ~ V))$coefficients[2, 1:2]
+    summary(stats::lm(D ~ V))$coefficients[2, 1:2]
   }
   gamma_ot <- apply(Z, 2, get_gamma_ot)
   se_gamma_ot <- gamma_ot[2, ]
@@ -185,7 +225,7 @@ data_gen <- function(seed       = NULL,
 
   ## Helper: SNP -> (estimate, SE) for association with Y (outcome sample)
   get_Gamma_ot <- function(V){
-    summary(lm(Y ~ V))$coefficients[2, 1:2]
+    summary(stats::lm(Y ~ V))$coefficients[2, 1:2]
   }
   Gamma_ot <- apply(Z, 2, get_Gamma_ot)
   se_Gamma_ot <- Gamma_ot[2, ]
@@ -193,7 +233,7 @@ data_gen <- function(seed       = NULL,
 
   ## Helper: SNP -> (estimate, SE) for association with D_new (treatment sample)
   get_gamma_tr <- function(V){
-    summary(lm(D_new ~ V))$coefficients[2, 1:2]
+    summary(stats::lm(D_new ~ V))$coefficients[2, 1:2]
   }
   gamma_tr <- apply(Z_new, 2, get_gamma_tr)
   se_gamma_tr <- gamma_tr[2, ]

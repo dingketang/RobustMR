@@ -1,25 +1,30 @@
 Package: RobustMR
-Title: Perform Mendelian Randomization Analysis using heterogeneous samples 
-Version: 0.0.0.9000
-Authors@R: 
-    person("Dingke", "Tang", , "dtang@uottawa.ca", role = c("aut", "cre"))
-Description: This is the code implementation for the paper "A robust framework for two-sample Mendelian randomization, Tang, D, He, X, Jiang, S, and Yang, S
-License: use_mit_license()
+Title: Summary-Data Mendelian Randomization with Heterogeneous Samples
+Version: 0.1.0
+Authors@R:
+    person("Dingke", "Tang", email = "dtang@uottawa.ca", role = c("aut", "cre"))
+Description: Provides summary-data Mendelian randomization estimators using
+    external exposure associations and target exposure and outcome associations.
+    Includes a Wald-type estimator, SNP-pairs bootstrap inference, a median-score
+    estimator, and simulation utilities for heterogeneous first-stage effects.
+    Optional comparison utilities interface with other Mendelian randomization
+    packages.
+License: MIT + file LICENSE
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Imports: 
-    MASS,
+Depends: R (>= 4.1.0)
+Imports:
+    stats
+Suggests:
     mr.divw,
     mr.raps,
-    quantreg,
+    testthat (>= 3.0.0),
     TwoSampleMR
 Remotes:
-    github::tye27/mr.divw,
-    github::qingyuanzhao/mr.raps,
-    github::MRCIEU/TwoSampleMR
+    tye27/mr.divw,
+    qingyuanzhao/mr.raps,
+    MRCIEU/TwoSampleMR
 URL: https://github.com/dingketang/RobustMR
 BugReports: https://github.com/dingketang/RobustMR/issues
-Suggests: 
-    testthat (>= 3.0.0)
+Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
+RoxygenNote: 7.3.2

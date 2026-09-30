@@ -1,0 +1,11 @@
+Source repository: https://github.com/dingketang/RobustMR
+Source commit: 3a69c0e53e87a72bcabb62a544ccd4a5b8382da3
+Retrieved: 2026-09-30
+Original source files and SHA-256 checksums:
+R/RMR.R  0c549e58928b607bda9208301eed606097420adcddd183392c3d38163d052eb0
+R/example_S1F3.R  07cbc8c2762afe9d1c8789c7c87ec00e9c3203adc5c057aa5695135ed2a5fb31
+
+Packaging changes: explicit namespaces, regenerated documentation and exports,
+optional comparison-dependency checks, corrected scenario return variable.
+The numerical estimator and interval algorithms are preserved.
+The example source was renamed R/example.R in this package.
