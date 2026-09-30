@@ -61,7 +61,7 @@ scenario1case3 <- function(seed){
   fit1 <- mr_wald_bs(data$mat_all)
 
   ## median-score-based Wald estimator with bootstrap CI
-  fit2 <- mr_wald_qr_R(data$mat_all)
+  fit2 <- mr_wald_R(data$mat_all)
 
   ## Outcome–exposure summary data for standard MR methods
   mat_h <- data$mat_h
