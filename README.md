@@ -70,7 +70,7 @@ RobustMR::mr_wald_bs(data$mat_all)
 # 95% CI ≈ (0.473, 0.549)
 
 set.seed(1234)
-RobustMR::mr_wald_qr_bs(data$mat_all)
+RobustMR::mr_wald_R(data$mat_all)
 # Point estimate ≈ 0.501
 # 95% CI ≈ (0.445, 0.557)
 ```
