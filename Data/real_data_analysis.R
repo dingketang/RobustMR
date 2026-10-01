@@ -114,25 +114,6 @@ getresultandci_lb_ub <- function(pe,lb,ub){
   paste0(vec[1],"(",vec[2],",",vec[3],")")
 }
 
-mr_ivqr        <- function(data_mat){
-  g_beta <- function(beta){
-    (sum(1/data_mat$se_gamma_tr*data_mat$gamma_tr*(0.5-(data_mat$Gamma_ot > beta*data_mat$gamma_ot))))
-  }
-  
-  min_num = range(data_mat$Gamma_ot/data_mat$gamma_ot)[1]
-  max_num = range(data_mat$Gamma_ot/data_mat$gamma_ot)[2]
-  
-  beta = seq(min_num,max_num,0.001)
-  M_square = unlist(lapply(beta,g_beta))^2
-  index = which.min(M_square)
-  pe = beta[index]
-  
-  CI_can  = unlist(lapply(beta,g_beta))/sqrt(0.25*( sum(1+(data_mat$gamma_tr/data_mat$se_gamma_tr)^2)))
-  CI_up   = beta[min(which(CI_can>1.96))]
-  CI_low  = beta[max(which(CI_can< -1.96))]
-  return(c(pe = pe,lb = CI_low,ub = CI_up))
-}
-
 
 MR_all<- function(Gamma_ou,gamma_ou, gamma_tr){
   dat1 = harmonise_data(gamma_tr,Gamma_ou)
